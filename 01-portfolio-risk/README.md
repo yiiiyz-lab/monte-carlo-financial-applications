@@ -1,0 +1,37 @@
+# Portfolio Risk & Loss Probability Simulation
+
+## Overview
+
+This project applies Monte Carlo simulation to assess the potential future losses of a multi-asset investment portfolio.
+
+Using historical market data and correlated asset return simulations, the model estimates portfolio P&L distributions, tail risk measures, and the probability of exceeding predefined loss thresholds.
+
+## Key Research Question
+
+What is the probability that a $100 million multi-asset portfolio loses more than 5% over the next 20 trading days?
+
+## Methodology
+
+1. Construct a multi-asset portfolio covering equities, Treasury bonds, corporate credit, and gold.
+2. Estimate historical asset returns, volatility, and correlations.
+3. Generate correlated asset returns using Monte Carlo simulation.
+4. Simulate portfolio values over a 20-trading-day horizon.
+5. Calculate portfolio P&L distributions, Value at Risk (VaR), Expected Shortfall (ES), and loss probabilities.
+6. Evaluate sensitivity to volatility and correlation assumptions under stressed market conditions.
+
+## Planned Visualizations
+
+- Portfolio P&L Distribution
+- Monte Carlo Portfolio Value Paths
+- Portfolio Value Fan Chart
+- Asset Correlation Heatmap
+- Base vs. Stress Scenario Comparison
+- Risk Metrics and Tail Loss Analysis
+
+## Tools
+
+Python, NumPy, pandas, SciPy, Matplotlib, Plotly
+
+## Project Status
+
+In Development
