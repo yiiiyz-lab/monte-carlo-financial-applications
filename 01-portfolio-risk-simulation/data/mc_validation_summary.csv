@@ -1,0 +1,5 @@
+check,status
+Cholesky reconstruction,PASS
+Simulated mean,PASS
+Simulated volatility,PASS
+Simulated correlation,PASS
