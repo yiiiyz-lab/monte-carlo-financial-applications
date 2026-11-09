@@ -1,0 +1,13 @@
+metric,value
+Initial NAV,100000000.0
+Horizon (days),20.0
+Simulations,50000.0
+Mean Terminal P&L,137279.10963160347
+Median Terminal P&L,92242.38669086248
+P&L Standard Deviation,3225656.7566116867
+VaR 95%,5052037.178371334
+ES 95%,6284792.804974019
+VaR 99%,7084954.454968773
+ES 99%,8001938.556650269
+Probability of Loss,0.48944
+Probability of >5% Loss,0.0519
