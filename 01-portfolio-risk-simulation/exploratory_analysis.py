@@ -208,6 +208,7 @@ fig.savefig(
 
 plt.close(fig)
 
+
 # --------------------------------------------------
 # 6. Figure 02: Correlation heatmap
 # --------------------------------------------------
@@ -233,9 +234,46 @@ norm = TwoSlopeNorm(
     vmax=1,
 )
 
-fig, ax = plt.subplots(figsize=(8.5, 6.5))
-fig.patch.set_facecolor(BG)
-ax.set_facecolor(PANEL)
+# Figure layout
+
+fig = plt.figure(figsize=(8.5, 6.5), facecolor=BG)
+
+# Fixed axes positions in figure coordinates.
+# Keep the 6x6 matrix centered independently of the colorbar.
+#
+# [left, bottom, width, height]
+#
+# Width and height are selected so the plotting area
+# is physically square on an 8.5 x 6.5 inch canvas.
+
+matrix_height = 0.68
+matrix_width = matrix_height * 6.5 / 8.5
+
+matrix_left = (1.0 - matrix_width) / 2
+matrix_bottom = 0.17
+
+ax = fig.add_axes(
+    [
+        matrix_left,
+        matrix_bottom,
+        matrix_width,
+        matrix_height,
+    ],
+    facecolor=PANEL,
+)
+
+# Separate colorbar axis
+
+cbar_ax = fig.add_axes(
+    [
+        matrix_left + matrix_width + 0.025,
+        matrix_bottom + 0.035,
+        0.014,
+        matrix_height - 0.07,
+    ]
+)
+
+# Heatmap
 
 heatmap = sns.heatmap(
     corr_matrix,
@@ -250,44 +288,49 @@ heatmap = sns.heatmap(
         "fontsize": 9.5,
         "fontweight": "normal",
     },
+    cbar=True,
+    cbar_ax=cbar_ax,
     cbar_kws={
         "label": "Pearson Correlation",
-        "shrink": 0.78,
-        "pad": 0.025,
-        "fraction": 0.035,
-        "aspect": 30,
+        "ticks": [-1, -0.5, 0, 0.5, 1],
     },
     ax=ax,
 )
 
-# Improve annotation contrast
+# Annotation contrast
+
 for text_obj in heatmap.texts:
     value = float(text_obj.get_text())
+
     text_obj.set_color(
         "#FFFFFF" if value > 0.75 else "#172033"
     )
 
-# Title
-ax.set_title(
+# Centered title and subtitle
+
+fig.text(
+    0.50,
+    0.945,
     "Asset Return Correlation Matrix",
+    ha="center",
+    va="center",
     fontsize=17,
     fontweight="bold",
-    loc="left",
-    pad=32,
     color=TEXT,
 )
 
-# Subtitle
-ax.text(
-    0,
-    1.045,
+fig.text(
+    0.50,
+    0.895,
     f"{period_label}  |  Daily log returns",
-    transform=ax.transAxes,
-    color=MUTED,
+    ha="center",
+    va="center",
     fontsize=10,
+    color=MUTED,
 )
 
-# Axis labels
+# Axis formatting
+
 ax.tick_params(
     axis="both",
     length=0,
@@ -295,47 +338,59 @@ ax.tick_params(
     colors=MUTED,
 )
 
-ax.set_xticklabels(TICKERS, rotation=0)
-ax.set_yticklabels(TICKERS, rotation=0)
+ax.set_xticklabels(
+    TICKERS,
+    rotation=0,
+    ha="center",
+)
+
+ax.set_yticklabels(
+    TICKERS,
+    rotation=0,
+    va="center",
+)
+
+ax.set_xlabel("")
+ax.set_ylabel("")
 
 # Colorbar styling
+
 cbar = heatmap.collections[0].colorbar
 
 cbar.ax.yaxis.label.set_color(MUTED)
 cbar.ax.yaxis.label.set_size(10)
+
 cbar.ax.tick_params(
     colors=MUTED,
     labelsize=9,
+    length=3,
 )
 
+cbar.outline.set_visible(False)
+
 # Footer
+
 fig.text(
-    0.08,
-    0.035,
+    0.50,
+    0.055,
     "Source: Yahoo Finance via yfinance | "
     "Full-sample Pearson correlations | "
     "Correlations may change under stress",
+    ha="center",
+    va="center",
     color=MUTED,
     fontsize=8,
 )
 
-# Compact layout
-fig.subplots_adjust(
-    left=0.12,
-    right=0.92,
-    top=0.83,
-    bottom=0.15,
-)
-
 # Save
+
 fig.savefig(
     FIGURES_DIR / "02_asset_correlation_heatmap.png",
     dpi=220,
     facecolor=BG,
-    bbox_inches="tight",
 )
 
 plt.close(fig)
 
 print("\nAnalysis completed.")
-print("Charts saved to:", FIGURES_DIR)
+print("Figures saved to:", FIGURES_DIR)
