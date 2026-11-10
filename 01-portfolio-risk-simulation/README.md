@@ -8,9 +8,9 @@ Under the baseline assumptions, the portfolio has a **99% VaR of $7.09 million**
 
 The results provide a quantitative assessment of potential portfolio losses and demonstrate how model assumptions influence downside risk estimates.
 
-### Key Research Question
+### Key Research Questions
 
-**What are the potential downside losses of a $100 million multi-asset portfolio over 20 trading days, as measured by Value at Risk (VaR), Expected Shortfall (ES), and loss probabilities?**
+**How can Monte Carlo simulation quantify Value at Risk (VaR), Expected Shortfall (ES), and downside loss probabilities for a multi-asset portfolio, and how can model validation, convergence testing, and sensitivity analysis assess the robustness of these estimates?**
 
 ## 2. Portfolio Overview and Historical Data
 
@@ -129,10 +129,10 @@ V_T = \sum_{i=1}^{6} V_{i,T}
 $$
 
 $$
-P\&L_T = V_T - V_0
+\mathrm{PnL}_T = V_T - V_0
 $$
 
-where $V_{i,0} = w_i V_0$ is the initial allocation to asset $i$, $w_i$ is its portfolio weight, and $V_0 = \$100\text{ million}$.
+where $V_{i,0} = w_i V_0$ is the initial allocation to asset $i$, $w_i$ is its portfolio weight, and the initial portfolio value $V_0$ is $100 million.
 
 Asset positions are held constant throughout each simulated path, allowing portfolio weights to drift with relative asset performance.
 
@@ -143,7 +143,7 @@ Risk measures are calculated from the simulated terminal portfolio P&L distribut
 **Value at Risk (VaR)** measures the loss threshold at a specified confidence level:
 
 $$
-VaR_\alpha = -Q_{1-\alpha}(P\&L_T)
+\mathrm{VaR}_{\alpha} = -Q_{1-\alpha}(\mathrm{PnL}_T)
 $$
 
 where $Q_{1-\alpha}$ is the lower-tail quantile of simulated P&L.
@@ -151,19 +151,19 @@ where $Q_{1-\alpha}$ is the lower-tail quantile of simulated P&L.
 **Expected Shortfall (ES)** measures the average loss in outcomes at or beyond the VaR threshold:
 
 $$
-ES_\alpha = -E[P\&L_T \mid P\&L_T \leq -VaR_\alpha]
+\mathrm{ES}_{\alpha} = -\mathbb{E}\left[\mathrm{PnL}_T \mid \mathrm{PnL}_T \leq -\mathrm{VaR}_{\alpha}\right]
 $$
 
 **Probability of Loss** measures the proportion of simulated outcomes with negative terminal P&L:
 
 $$
-P(P\&L_T < 0)
+\mathbb{P}(\mathrm{PnL}_T < 0)
 $$
 
 **Probability of Loss Exceeding 5%** measures the proportion of simulations in which the portfolio loses more than $5 million:
 
 $$
-P(P\&L_T < -0.05V_0)
+\mathbb{P}(\mathrm{PnL}_T < -0.05V_0)
 $$
 
 VaR and ES are evaluated at both 95% and 99% confidence levels. All reported risk estimates represent potential losses over the full 20-trading-day simulation horizon.
@@ -209,74 +209,191 @@ The widening percentile ranges illustrate how uncertainty in portfolio value acc
 
 These percentile envelopes describe the distribution of NAV at each point in time; they do not represent confidence intervals for the estimated mean or guaranteed bounds for individual portfolio paths.
 
+## 5. Model Implementation Validation
 
+Model implementation validation was conducted to verify the accuracy of correlated return generation and the consistency of simulated return statistics with the specified model inputs.
 
+Four validation checks were performed using the baseline Monte Carlo configuration.
 
+### 5.1 Validation Results
 
+| Validation Check | Result | Status |
+|---|---|---|
+| Cholesky Covariance Reconstruction | Maximum absolute error: 1.36 × 10⁻²⁰ | PASS |
+| Simulated Mean Returns | All six asset means within ±3 theoretical standard errors of zero | PASS |
+| Simulated Volatility | Maximum relative deviation: 0.0967% | PASS |
+| Simulated Correlation | Maximum absolute deviation: 0.002924 | PASS |
 
+### 5.2 Validation Methodology
 
----------------------------------------
+**Covariance Reconstruction**
 
-## Methodology
+The historical covariance matrix was reconstructed using its Cholesky factor. The negligible reconstruction error confirms numerical consistency between the covariance matrix and its decomposition.
 
-1. Construct a multi-asset portfolio covering equities, Treasury bonds, corporate credit, and gold.
-2. Estimate historical asset returns, volatility, and correlations.
-3. Generate correlated asset returns using Monte Carlo simulation.
-4. Simulate portfolio values over a 20-trading-day horizon.
-5. Calculate portfolio P&L distributions, Value at Risk (VaR), Expected Shortfall (ES), and loss probabilities.
-6. Evaluate sensitivity to volatility and correlation assumptions under stressed market conditions.
+**Mean Return Consistency**
 
-## Exploratory Market Risk Analysis
+Simulated daily mean returns were compared against the assumed zero-drift specification. All six assets' simulated means fell within three theoretical standard errors of zero, consistent with the model assumptions.
 
-### Historical ETF Performance
+**Volatility Consistency**
 
-The chart below compares the cumulative performance of six ETFs
-using adjusted closing prices normalized to an initial value of 100.
+Simulated daily return volatilities were compared with historical volatility inputs. The maximum relative deviation across the six assets was 0.0967%, indicating close agreement between simulated and target volatilities.
 
-![Historical ETF Performance](figures/01_normalized_etf_performance.png)
+**Correlation Consistency**
 
-### Historical Asset Correlations
+The simulated correlation matrix was compared against the historical correlation matrix. The maximum absolute deviation of 0.002924 indicates that the simulation closely reproduces the specified cross-asset dependence structure.
 
-The correlation matrix illustrates relationships between daily
-log returns across equities, Treasury bonds, corporate credit,
-and gold.
+### 5.3 Validation Conclusion
 
-![Asset Correlation Matrix](figures/02_asset_correlation_heatmap.png)
+All four implementation checks passed, providing evidence that the simulation accurately reproduces its intended statistical inputs.
 
-### Preliminary Findings
+These results support the correctness of the numerical implementation but do not establish the predictive accuracy of the underlying return distribution or the stability of historical market relationships.
 
-- **Equity concentration:** SPY and QQQ exhibit a strong positive
-  correlation of approximately 0.93, limiting diversification
-  benefits between the two positions.
-- **Treasury exposure:** IEF and TLT exhibit a correlation of
-  approximately 0.91, reflecting shared interest-rate sensitivity.
-- **Corporate credit:** LQD is positively correlated with both
-  Treasury bonds and equities, reflecting its combined interest-rate
-  and credit-spread exposures.
-- **Gold diversification:** GLD exhibits relatively low historical
-  correlations with equities, although its standalone volatility
-  remains material.
+Monte Carlo estimation stability is assessed separately in Section 6 through convergence analysis.
 
-These historical relationships form the basis for estimating
-the covariance matrix used in the Monte Carlo simulation.
+## 6. Monte Carlo Convergence Analysis
 
-**Data period:** January 2020 – November 2026  
-**Data source:** Yahoo Finance via yfinance  
-**Methodology:** Daily adjusted prices and logarithmic returns
+Monte Carlo estimates are subject to sampling variability, particularly for tail risk measures such as Value at Risk (VaR) and Expected Shortfall (ES). Convergence analysis was conducted to assess how simulation size affects the stability of these estimates.
 
-## Planned Visualizations
+### 6.1 Convergence Methodology
 
-- Portfolio P&L Distribution
-- Monte Carlo Portfolio Value Paths
-- Portfolio Value Fan Chart
-- Asset Correlation Heatmap
-- Base vs. Stress Scenario Comparison
-- Risk Metrics and Tail Loss Analysis
+The analysis evaluates 99% VaR and ES across five simulation sizes: **1,000, 5,000, 10,000, 25,000, and 50,000 paths**.
 
-## Tools
+Five independent random seeds (42, 123, 456, 789, and 2026) were used. For each seed, 50,000 portfolio paths were generated, and risk metrics were calculated using progressively larger nested samples from the same simulation run.
 
-Python, NumPy, pandas, SciPy, Matplotlib, Plotly
+The mean and standard deviation of VaR and ES across the five seeds were used to evaluate estimation stability.
 
-## Project Status
+### 6.2 Convergence Results
 
-In Development
+The table below summarizes the mean and standard deviation of 99% VaR and ES estimates across five independent random seeds.
+
+| Simulations | Mean VaR 99% ($M) | VaR Std. Dev. ($M) | Mean ES 99% ($M) | ES Std. Dev. ($M) |
+|---:|---:|---:|---:|---:|
+| 1,000 | 6.979 | 0.339 | 7.931 | 0.389 |
+| 5,000 | 7.057 | 0.189 | 8.011 | 0.189 |
+| 10,000 | 7.065 | 0.151 | 7.974 | 0.152 |
+| 25,000 | 7.016 | 0.091 | 7.964 | 0.124 |
+| 50,000 | 7.040 | 0.046 | 7.994 | 0.047 |
+
+![Monte Carlo VaR and ES Convergence](figures/06_mc_var_es_convergence.png)
+
+The shaded bands represent ±1 standard deviation across five independent random seeds at each simulation size.
+
+As the number of simulations increases, the variability of both VaR and ES estimates decreases, indicating improved numerical stability.
+
+The results demonstrate a substantial reduction in estimation variability as simulation size increases.
+
+At 1,000 simulations, the standard deviations of VaR and ES across seeds are approximately $0.34 million and $0.39 million, respectively. At 50,000 simulations, these decline to approximately **$0.046 million for VaR** and **$0.047 million for ES**.
+
+At 50,000 paths, the coefficients of variation across the five seeds are approximately **0.65% for VaR** and **0.59% for ES**, indicating relatively low seed-to-seed variability under the baseline model.
+
+### 6.3 Convergence Assessment
+
+The results support the selection of **50,000 simulations** as a reasonable balance between computational efficiency and numerical stability for this analysis.
+
+Although the mean estimates fluctuate slightly across sample sizes, their cross-seed variability generally decreases as the number of simulations increases. This is consistent with the expected convergence behavior of Monte Carlo estimators.
+
+The convergence analysis evaluates numerical precision under the specified model assumptions. It does not establish the accuracy of the assumed return distribution or guarantee that simulated losses will match future market outcomes.
+
+## 7. Model Sensitivity Analysis
+
+Sensitivity analysis evaluates how portfolio risk estimates respond to changes in key model assumptions, including volatility, cross-asset correlation, expected returns, and return distributions.
+
+Each scenario modifies one assumption while holding the remaining baseline parameters constant. All scenarios use 50,000 simulated paths over a 20-trading-day horizon, with common Gaussian random draws used where applicable to facilitate comparisons.
+
+### 7.1 Sensitivity Results
+
+The table below summarizes changes in 99% VaR and Expected Shortfall (ES) relative to the baseline model.
+
+| Risk Factor | Scenario | VaR 99% ($M) | ES 99% ($M) | VaR Change | ES Change |
+|---|---|---:|---:|---:|---:|
+| **Baseline** | Normal, zero drift | **7.085** | **8.002** | — | — |
+| Volatility | Low (0.75×) | 5.392 | 6.098 | −23.90% | −23.80% |
+| Volatility | Elevated (1.25×) | 8.733 | 9.847 | +23.26% | +23.05% |
+| Volatility | Severe (1.50×) | 10.336 | 11.634 | +45.88% | +45.39% |
+| Correlation | Lower dependence | 6.049 | 6.913 | −14.62% | −13.61% |
+| Correlation | Higher co-movement | 8.706 | 9.862 | +22.89% | +23.25% |
+| Drift | Historical mean | 6.561 | 7.478 | −7.40% | −6.55% |
+| Drift | Negative drift | 7.380 | 8.293 | +4.16% | +3.63% |
+| Distribution | Student's t (df=10) | 7.115 | 8.098 | +0.43% | +1.20% |
+| Distribution | Student's t (df=5) | 7.073 | 8.298 | −0.17% | +3.70% |
+
+![Monte Carlo Volatility Sensitivity](figures/07_mc_volatility_sensitivity.png)
+
+![Monte Carlo Model Sensitivity Comparison](figures/08_mc_model_sensitivity.png)
+
+### 7.2 Key Findings
+
+**Volatility Sensitivity**
+
+Asset volatilities are scaled uniformly by factors of 0.75, 1.25, and 1.50, preserving the baseline correlation structure.
+
+A 50% increase in volatility raises 99% VaR by **45.88%** and ES by **45.39%**, demonstrating substantial sensitivity of portfolio downside risk to volatility assumptions.
+
+**Correlation Sensitivity**
+
+Alternative correlation matrices are constructed by blending the historical correlation matrix with either the identity matrix (lower dependence) or a perfect-correlation matrix (higher co-movement), while preserving individual asset volatilities.
+
+Higher co-movement increases 99% VaR by **22.89%** and ES by **23.25%**, illustrating how stronger cross-asset dependence can reduce diversification benefits.
+
+**Drift Sensitivity**
+
+The baseline zero-drift assumption is compared with historical average log returns and an illustrative negative-drift scenario.
+
+Historical mean returns reduce 99% VaR by **7.40%**, while negative drift increases it by **4.16%**. These findings demonstrate that expected-return assumptions influence downside risk, although historical mean estimates are subject to considerable uncertainty.
+
+**Distribution Sensitivity**
+
+The baseline multivariate normal distribution is compared with covariance-matched multivariate Student's t distributions with 10 and 5 degrees of freedom.
+
+Under the five-degree-of-freedom scenario, 99% VaR remains approximately unchanged (−0.17%), while ES increases by **3.70%**. This illustrates the sensitivity of average extreme losses to heavier-tailed return assumptions, even when the VaR threshold changes relatively little.
+
+### 7.3 Sensitivity Assessment
+
+The results indicate that estimated portfolio downside risk is materially affected by volatility and correlation assumptions, while drift and distributional choices also influence tail risk measures.
+
+The scenarios are illustrative rather than probabilistic forecasts, and their magnitudes are not directly comparable across risk factors. Sensitivity results should therefore be interpreted as conditional changes in modeled risk rather than a definitive ranking of real-world risk drivers.
+
+## 8. Model Limitations and Potential Enhancements
+
+### 8.1 Model Limitations
+
+**1. Distributional Assumptions**
+
+The baseline model assumes multivariate normally distributed daily log returns with constant volatility and correlations. This may underestimate extreme market movements, volatility clustering, and changes in cross-asset dependence during periods of stress. Although Student's t distributions are examined in the sensitivity analysis, they do not fully capture time-varying market dynamics.
+
+**2. Historical Calibration**
+
+Volatility and covariance estimates are calibrated using historical observations from January 2020 to November 2026. These estimates are sensitive to the selected sample period and may not adequately represent future market conditions or structural changes in asset relationships.
+
+**3. Static Portfolio and Market Dynamics**
+
+The simulation assumes a buy-and-hold portfolio with no rebalancing, transaction costs, or financing costs. It also assumes independent daily return vectors with constant parameters, excluding dynamic volatility, changing correlations, and liquidity effects that may amplify losses during stressed markets.
+
+**4. Validation Scope**
+
+Implementation checks confirm consistency between simulated statistics and model inputs, while convergence analysis evaluates numerical stability. However, these tests do not establish predictive accuracy. Historical backtesting, out-of-sample performance evaluation, and cross-seed robustness testing of individual sensitivity scenarios were not performed.
+
+### 8.2 Potential Enhancements
+
+Future research could extend the framework through:
+
+- **Alternative return models:** Incorporate GARCH-based volatility dynamics, regime-switching models, or bootstrap simulations to better represent changing market conditions.
+- **Dynamic dependence modeling:** Explore time-varying correlations or copula-based approaches to capture nonlinear dependence and potential correlation shifts during stress.
+- **Historical backtesting:** Compare model-implied VaR estimates with realized portfolio P&L using rolling calibration windows and out-of-sample observations.
+- **Stress testing and liquidity adjustments:** Introduce historical and hypothetical market shocks, transaction costs, and liquidity constraints to assess losses under more severe conditions.
+- **Extended robustness analysis:** Evaluate parameter uncertainty, alternative calibration windows, and sensitivity-result stability across independent simulation runs.
+
+### 8.3 Overall Assessment
+
+The Monte Carlo framework provides a structured approach to portfolio risk estimation, supported by numerical validation, convergence testing, and sensitivity analysis. The model effectively captures cross-asset correlations and quantifies downside risk, but results remain dependent on underlying assumptions. Future enhancements could include historical backtesting and more realistic market dynamics.
+
+## 9. Conclusion
+
+This study developed a Monte Carlo simulation framework using 50,000 simulation paths to assess the downside risk of a $100 million multi-asset ETF portfolio over a 20-trading-day horizon.
+
+The simulation estimates a 99% VaR of $7.09 million, a 99% Expected Shortfall of $8.00 million, and a 5.19% probability of losing more than 5% of the portfolio's initial value.
+
+Model implementation validation confirms that simulated returns closely reproduce the specified volatility and correlation inputs, while convergence analysis demonstrates that VaR and ES estimates become more stable as simulation size increases. Sensitivity analysis further illustrates how volatility, cross-asset correlations, drift, and return distribution assumptions affect estimated portfolio losses.
+
+Overall, the framework provides a reproducible approach to portfolio risk measurement and highlights the importance of model validation and assumption sensitivity when interpreting Monte Carlo risk estimates.
+
