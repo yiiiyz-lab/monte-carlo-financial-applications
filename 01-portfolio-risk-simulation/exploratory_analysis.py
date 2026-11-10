@@ -212,13 +212,28 @@ plt.close(fig)
 # 6. Figure 02: Correlation heatmap
 # --------------------------------------------------
 
+from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
+
+# Warm, muted institutional palette
 cmap = LinearSegmentedColormap.from_list(
-    "risk_correlation",
-    ["#3B82F6", "#E2E8F0", "#EF6C5B"],
+    "warm_correlation",
+    [
+        "#6F625F",  # -1.0: Dark taupe
+        "#B8A49D",  # -0.5: Warm gray
+        "#F0E7DE",  #  0.0: Warm ivory
+        "#D8A28B",  # +0.5: Soft terracotta
+        "#B96954",  # +1.0: Muted rust
+    ],
     N=256,
 )
 
-fig, ax = plt.subplots(figsize=(10, 8))
+norm = TwoSlopeNorm(
+    vmin=-1,
+    vcenter=0,
+    vmax=1,
+)
+
+fig, ax = plt.subplots(figsize=(8.5, 6.5))
 fig.patch.set_facecolor(BG)
 ax.set_facecolor(PANEL)
 
@@ -227,71 +242,92 @@ heatmap = sns.heatmap(
     annot=True,
     fmt=".2f",
     cmap=cmap,
-    vmin=-1,
-    vmax=1,
-    center=0,
+    norm=norm,
     square=True,
-    linewidths=1.5,
+    linewidths=0.8,
     linecolor=BG,
     annot_kws={
-        "fontsize": 11,
-        "fontweight": "bold",
+        "fontsize": 9.5,
+        "fontweight": "normal",
     },
     cbar_kws={
         "label": "Pearson Correlation",
-        "shrink": 0.82,
-        "pad": 0.035,
+        "shrink": 0.78,
+        "pad": 0.025,
+        "fraction": 0.035,
+        "aspect": 30,
     },
     ax=ax,
 )
 
-# Adjust annotation contrast for readability
+# Improve annotation contrast
 for text_obj in heatmap.texts:
     value = float(text_obj.get_text())
     text_obj.set_color(
-        "#FFFFFF" if abs(value) > 0.65 else "#172033"
+        "#FFFFFF" if value > 0.75 else "#172033"
     )
 
+# Title
 ax.set_title(
     "Asset Return Correlation Matrix",
-    fontsize=20,
+    fontsize=17,
     fontweight="bold",
     loc="left",
-    pad=38,
+    pad=32,
+    color=TEXT,
 )
 
+# Subtitle
 ax.text(
-    0, 1.045,
+    0,
+    1.045,
     f"{period_label}  |  Daily log returns",
     transform=ax.transAxes,
     color=MUTED,
-    fontsize=11,
+    fontsize=10,
 )
 
-ax.tick_params(axis="both", length=0, labelsize=11)
+# Axis labels
+ax.tick_params(
+    axis="both",
+    length=0,
+    labelsize=10,
+    colors=MUTED,
+)
+
 ax.set_xticklabels(TICKERS, rotation=0)
 ax.set_yticklabels(TICKERS, rotation=0)
 
+# Colorbar styling
 cbar = heatmap.collections[0].colorbar
-cbar.ax.yaxis.label.set_color(MUTED)
-cbar.ax.tick_params(colors=MUTED)
 
+cbar.ax.yaxis.label.set_color(MUTED)
+cbar.ax.yaxis.label.set_size(10)
+cbar.ax.tick_params(
+    colors=MUTED,
+    labelsize=9,
+)
+
+# Footer
 fig.text(
-    0.08, 0.035,
+    0.08,
+    0.035,
     "Source: Yahoo Finance via yfinance | "
     "Full-sample Pearson correlations | "
     "Correlations may change under stress",
     color=MUTED,
-    fontsize=9,
+    fontsize=8,
 )
 
+# Compact layout
 fig.subplots_adjust(
-    left=0.08,
-    right=0.94,
-    top=0.85,
-    bottom=0.13,
+    left=0.12,
+    right=0.92,
+    top=0.83,
+    bottom=0.15,
 )
 
+# Save
 fig.savefig(
     FIGURES_DIR / "02_asset_correlation_heatmap.png",
     dpi=220,
