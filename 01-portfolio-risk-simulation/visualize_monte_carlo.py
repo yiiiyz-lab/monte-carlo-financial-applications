@@ -461,48 +461,61 @@ save_figure(
 # 5. Figure 05: VaR vs Expected Shortfall
 # --------------------------------------------------
 
-fig, ax = plt.subplots(figsize=(12, 7))
+# Refined institutional color palette
+VAR_COLOR = "#648FB5"   # Muted steel blue
+ES_COLOR = "#C2A36B"    # Muted gold
+
+fig, ax = plt.subplots(figsize=(12, 6.5))
 
 confidence = ["95%", "99%"]
-x = np.arange(len(confidence))
-bar_width = 0.29
 
+# Wider spacing between confidence groups
+x = np.array([0, 1.4])
+bar_width = 0.18
+
+# Use existing Monte Carlo risk estimates (USD millions)
 var_values = [var95, var99]
 es_values = [es95, es99]
 
+# VaR bars
 bars_var = ax.bar(
     x - bar_width / 2,
     var_values,
     width=bar_width,
-    color=BLUE,
+    color=VAR_COLOR,
     label="Value at Risk",
-    alpha=0.9,
+    alpha=0.95,
+    zorder=3,
 )
 
+# ES bars
 bars_es = ax.bar(
     x + bar_width / 2,
     es_values,
     width=bar_width,
-    color=AMBER,
+    color=ES_COLOR,
     label="Expected Shortfall",
-    alpha=0.9,
+    alpha=0.95,
+    zorder=3,
 )
 
+# Value labels
 for bars in [bars_var, bars_es]:
     for bar in bars:
         value = bar.get_height()
 
         ax.text(
             bar.get_x() + bar.get_width() / 2,
-            value + 0.13,
+            value + 0.12,
             f"${value:.2f}M",
             ha="center",
             va="bottom",
-            fontsize=12,
+            fontsize=11,
             fontweight="bold",
             color=TEXT,
         )
 
+# Header
 add_header(
     ax,
     "Value at Risk vs. Expected Shortfall",
@@ -511,23 +524,52 @@ add_header(
     "USD millions",
 )
 
+# Axis formatting
 ax.set_xticks(x)
-ax.set_xticklabels(confidence, fontsize=12)
-ax.set_xlabel("Confidence Level", labelpad=12)
-ax.set_ylabel("Estimated Loss ($M)", labelpad=12)
+ax.set_xticklabels(
+    confidence,
+    fontsize=12,
+    color=TEXT,
+)
 
-ax.set_ylim(0, max(es_values) * 1.22)
+ax.set_xlabel(
+    "Confidence Level",
+    labelpad=12,
+)
 
+ax.set_ylabel(
+    "Estimated Loss ($M)",
+    labelpad=12,
+)
+
+ax.set_xlim(-0.55, 1.95)
+ax.set_ylim(0, max(es_values) * 1.20)
+
+# Apply existing dark theme
 style_axis(ax)
 
+# Subtle horizontal gridlines
+ax.grid(
+    axis="y",
+    color=GRID,
+    alpha=0.30,
+    linewidth=0.7,
+)
+
+ax.grid(axis="x", visible=False)
+ax.set_axisbelow(True)
+
+# Legend
 ax.legend(
     loc="upper left",
     facecolor=PANEL,
     edgecolor=GRID,
     labelcolor=TEXT,
-    fontsize=11,
+    fontsize=10,
+    framealpha=0.85,
 )
 
+# Footer
 add_footer(
     fig,
     "VaR: loss quantile | "
@@ -535,6 +577,7 @@ add_footer(
     "Monte Carlo estimates under model assumptions",
 )
 
+# Layout
 fig.subplots_adjust(
     left=0.09,
     right=0.96,
@@ -542,9 +585,10 @@ fig.subplots_adjust(
     bottom=0.17,
 )
 
+# Save Figure 05
 save_figure(
     fig,
     "05_var_es_comparison.png",
 )
 
-print("\nAll three Monte Carlo figures generated.")
+print("\nFigure 05 updated successfully.")
